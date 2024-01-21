@@ -1,3 +1,5 @@
  go install github.com/ktr0731/evans@latest
  
  evans --proto=./calculator.proto -p=8000
+
+ evans -r  -p=8000  

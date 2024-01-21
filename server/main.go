@@ -6,6 +6,7 @@ import (
 	"server/services"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 func main() {
@@ -17,6 +18,7 @@ func main() {
 	}
 
 	services.RegisterCalculatorServer(s, services.NewCalculatorServer())
+	reflection.Register(s)
 
 	err = s.Serve(listener)
 	if err != nil {
