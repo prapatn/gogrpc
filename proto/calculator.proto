@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+
+import "google/protobuf/timestamp.proto";
 package services;
 option go_package="./services";
 
@@ -9,6 +11,7 @@ service Calculator {
 
 message HelloRequest {
     string name = 1;
+    google.protobuf.Timestamp created_date = 2;
 }
 
 message HelloResponse {
