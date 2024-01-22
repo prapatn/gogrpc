@@ -12,6 +12,8 @@ import (
 type CalculatorService interface {
 	Hello(name string) error
 	Fibonacci(n uint32) error
+	Average(number ...float64) error
+	Sum(numbers ...int32) error
 }
 
 type calculatorService struct {
@@ -44,7 +46,7 @@ func (base calculatorService) Fibonacci(n uint32) error {
 		N: n,
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
 	stream, err := base.calculatorClient.Fibonacci(ctx, &req)
@@ -68,4 +70,77 @@ func (base calculatorService) Fibonacci(n uint32) error {
 	}
 
 	return nil
+}
+
+func (base calculatorService) Average(numbers ...float64) error {
+
+	stream, err := base.calculatorClient.Average(context.Background())
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Service: Average\n")
+
+	for _, n := range numbers {
+		req := AverageRequest{
+			Number: n,
+		}
+		stream.Send(&req)
+		time.Sleep(time.Second)
+		fmt.Printf("Request: %v\n", n)
+	}
+
+	res, err := stream.CloseAndRecv()
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Response: %v\n", res.Result)
+	return nil
+}
+
+func (base calculatorService) Sum(numbers ...int32) error {
+	stream, err := base.calculatorClient.Sum(context.Background())
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Service: Sum\n")
+
+	//Request
+	go func() {
+		for _, n := range numbers {
+			req := SumRequest{
+				Number: n,
+			}
+			stream.Send(&req)
+			fmt.Printf("Request: %v\n", n)
+			time.Sleep(time.Second * 2)
+		}
+		stream.CloseSend()
+	}()
+
+	done := make(chan bool)
+	errs := make(chan error)
+	//Response
+	go func() {
+		for {
+			res, err := stream.Recv()
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				errs <- err
+			}
+			fmt.Printf("Response: %v\n", res.Result)
+		}
+		done <- true
+
+	}()
+
+	select {
+	case <-done:
+		return nil
+	case <-errs:
+		return err
+	}
 }

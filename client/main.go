@@ -20,7 +20,10 @@ func main() {
 	service := services.NewCalculatorService(client)
 
 	// err = service.Hello("Go")
-	err = service.Fibonacci(6)
+	// err = service.Fibonacci(6)
+	// err = service.Average(9, 2, 3, 4, 5)
+	err = service.Sum(9, 2, 3, 4, 5)
+
 	if err != nil {
 		log.Fatal(err)
 	}
